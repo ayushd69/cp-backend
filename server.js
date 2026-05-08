@@ -13,12 +13,19 @@ let dbConnected = false;
 
 //create express app
 const app = exp();
-const allowedOrigins =
-  process.env.CORS_ORIGINS?.split(",").map((origin) => origin.trim()).filter(Boolean) ||
-  [
-    "http://localhost:5173",
-    process.env.frontend_url,
-  ].filter(Boolean);
+const normalizeOrigin = (origin) =>
+  origin?.trim().replace(/\/$/, "") || undefined;
+
+const originsFromEnv = process.env.CORS_ORIGINS?.split(",")
+  .map((origin) => normalizeOrigin(origin))
+  .filter(Boolean);
+
+const allowedOrigins = originsFromEnv?.length
+  ? originsFromEnv
+  : [
+      normalizeOrigin("http://localhost:5173"),
+      normalizeOrigin(process.env.frontend_url),
+    ].filter(Boolean);
 // enable cors
 app.use(cors({
   origin: allowedOrigins,
